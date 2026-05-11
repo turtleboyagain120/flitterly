@@ -1,0 +1,38 @@
+name: UVAN-Fortress-Build
+
+# This triggers the build on every push to GitHub
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    # This fulfills your "ubuntulatest" requirement
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 🛠️ Install UVAN Fortress 8.0.0
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          # This installs psutil, js2py, and colorama from your .toml
+
+      - name: 🛡️ Verify ZZX Command
+        run: |
+          # Checks if the 'uvan' command was registered correctly
+          uvan --version
+
+      - name: 🧪 Run ZZX Syntax Scan
+        run: |
+          # A simple test to make sure the regex engine doesn't crash
+          python uvan.py --test-scan
