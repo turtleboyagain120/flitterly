@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flittery"
-version = "1.0"
-dependencies = ["js2py", "pyyaml"]
+version = "1.0.0"
+dependencies = ["psutil", "js2py"]
 
 [project.scripts]
-flit = "engine:main"
+flit = "engine:main"  # This links the 'flit' command to your single file
