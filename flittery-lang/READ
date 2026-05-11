@@ -1,6 +1,8 @@
-flittery-lang/
-├── Layout/
-│   ├── engine.py           # Core UVAN Transpiler
-│   └── .gitignore          # Exclusion Rules
-├── LICENSE                 # Legal
-└── README.md               # Instructions
+uvan-fortress/
+├── .github/                # GitHub Actions (for auto-deploying to Vercel/Render)
+├── flittery-lang/          # Folder for your custom ZZX/Flittery logic
+├── READ/                   # Internal documentation/notes folder
+├── pyproject.toml          # The UVAN 8.0.0 build config we just made
+├── .gitignore              # Tells Git to ignore trash files (like __pycache__)
+├── LICENSE                 # Public license (e.g., MIT) so others can use it
+└── README.md               # The "Storefront" (How to install & use)
