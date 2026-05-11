@@ -1,0 +1,40 @@
+name: UVAN Fortress Setup
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allows manual trigger from the "Actions" tab
+
+jobs:
+  setup-fortress:
+    runs-on: windows-latest # Required for C:/ drive and Windows commands
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Polyglot Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install psutil js2py pyyaml
+
+      - name: Create UVAN Partitions
+        shell: pwsh
+        run: |
+          # Creates folders if they don't exist
+          $paths = @("C:\UVAN", "C:\UVAN\ZZX_Cache", "C:\UVAN\LL_Wrapper")
+          foreach ($p in $paths) {
+            if (!(Test-Path $p)) { New-Item -ItemType Directory -Path $p }
+          }
+          echo ">> [SYSTEM] UVAN PARTITIONS SYNCED."
+
+      - name: Set Global Command Variable
+        shell: pwsh
+        run: |
+          # Adds the current folder to the runner's PATH so you can use 'flit'
+          echo "${{ github.workspace }}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
