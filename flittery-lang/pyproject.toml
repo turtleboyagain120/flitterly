@@ -5,14 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "uvan-fortress"
 version = "8.0.0"
-description = "A polyglot shell environment with high-resource memory locking."
+description = "A polyglot shell environment with high-resource memory locking and ZZX symbol parsing."
 readme = "README.md"
 requires-python = ">=3.8"
+
+# These dependencies power your specific ZZX commands
 dependencies = [
-    "js2py",
-    "PyYAML",
-    "psutil",
+    "js2py",      # For JavaScript cross-compat
+    "PyYAML",     # For configuration scanning
+    "psutil",     # CRITICAL: For "force net stop" and admin process killing
+    "colorama",   # For making those "forced" outputs look scary/red
 ]
 
 [project.scripts]
 uvan = "uvan:main"
+zzx = "uvan.interpreter:run_zzx"  # Added a direct command to run your .zzx files
