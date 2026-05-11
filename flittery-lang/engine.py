@@ -1,43 +1,35 @@
 import sys, os, psutil, js2py, gc, re, time, getpass, json
 
 # ============================================================
-# 1. HARDCODED CONFIGURATION (The "Built-in" JSON)
+# 1. HARDCODED CONFIGURATION & HYBRID COMMAND MAP
 # ============================================================
 INTERNAL_CONFIG = {
     "AUTHORIZED_USER": "turtl",
     "GATE_PASSWORD": "turtl",
     "UVAN_VERSION": "7.0",
-    "UVAN_PATH": "C:/UVAN",
-    "ACTIVE_CONTEXT": "ROOT_ADMIN"
+    "UVAN_PATH": "C:/UVAN"
 }
 
-# ============================================================
-# 2. SECURITY & IDENTITY BRAIN
-# ============================================================
-def run_security_protocol():
-    """Verifies the OS user is 'turtl'."""
-    current_os_user = getpass.getuser()
-    if current_os_user != INTERNAL_CONFIG["AUTHORIZED_USER"]:
-        print(f"!! SECURITY BREACH: User '{current_os_user}' is unauthorized.")
-        print("!! ACCESS PERMANENTLY DENIED.")
-        sys.exit(1)
-    print(f">> [AUTH] IDENTITY CONFIRMED: {current_os_user}")
+# This map handles BOTH fixed (exact line) and substring (keyword) checks
+COMMAND_MAP = {
+    "fixed": {
+        "Edit/%remote": "REMOTE_GATE",
+        "admin [SECURITY] IDENTITY CONFIRMED: {current_user}")
 
 def password_gate():
-    """The password check for protected commands."""
+    """Password lock for sensitive commands."""
     print(">> [LOCKED] PROTECTED COMMAND DETECTED.")
     attempt = input("ENTER ACCESS KEY: ")
     if attempt == INTERNAL_CONFIG["GATE_PASSWORD"]:
         print(">> [LOCKED] ACCESS GRANTED.")
         return True
-    else:
-        print("!! INCORRECT KEY. COMMAND ABORTED.")
-        return False
+    print("!! INCORRECT KEY. ABORTING.")
+    return False
 
 # ============================================================
-# 3. VAN MEMORY LOCK (8GB Zero-Latency)
+# 3. VAN MEMORY LOCK (8GB)
 # ============================================================
-def engage_memory_lock():
+def lock_van_memory():
     LOCK_BYTES = 8 * (1024**3)
     print(f">> [SYSTEM] INITIATING 8GB VAN LOCK...")
     mem = psutil.virtual_memory()
@@ -51,79 +43,70 @@ def engage_memory_lock():
         print(">> [SYSTEM] VAN MEMORY LOCK ENGAGED.")
         return _buffer
     except MemoryError:
-        print("!! FATAL: MEMORY ALLOCATION FAILED.")
+        print("!! FATAL: PHYSICAL ALLOCATION FAILED.")
         sys.exit(1)
 
 # ============================================================
-# 4. COMMAND BRAINS
+# 4. COMMAND BRAIN LOGIC
 # ============================================================
 class Brains:
     @staticmethod
-    def remote_control(line):
-        """Logic for Edit/%remote with Password Gate"""
-        if password_gate():
-            print(">> [REMOTE] OPENING NETWORK-SHARING CHANNEL...")
-            print(">> [REMOTE] SYNCING PACKETS... [99.9%]")
-            print(">> [REMOTE] CONTROL ESTABLISHED.")
-
-    @staticmethod
-    def file_access():
-        print(">> [FILE] ^%FILE-ACCESS: GRANTED.")
-
-    @staticmethod
-    def network_kill():
-        print(">> [NET] EXECUTING FORCE STOP...")
-        # os.system("net stop 'Workstation' /y")
+    def execute(action, line):
+        if action == "REMOTE_GATE":
+            if password_gate():
+                print(">> [REMOTE] NETWORK-SHARING CHANNEL OPEN.")
+        elif action == "FILE_BRAIN":
+            print(">> [FILE] ^%FILE-ACCESS: FULL CONTROL GRANTED.")
+        elif action == "NET_KILL":
+            print(">> [NET] EXECUTING FORCE STOP...")
+        elif action == "ADMIN_MACRO":
+            print(">> [CMD] NET USER /ACTIVE:YES")
+        elif action == "PRIV_CHECK":
+            print(">> [CONTEXT] PRIVILEGE CHECK: OK.")
+        elif "FLAG" in action:
+            print(f">> [ROOT] EXECUTING: {line}")
 
 # ============================================================
-# 5. CORE ENGINE & POLYGLOT PARSER
+# 5. CORE ENGINE
 # ============================================================
 class FlitteryEngine:
     def __init__(self, script_path):
-        # Initial Boot Sequence
-        run_security_protocol()
-        self.ram_lock = engage_memory_lock()
+        verify_identity()
+        self.ram_lock = lock_van_memory()
         
         if not os.path.exists(script_path):
-            print("!! [ERR] SCRIPT NOT FOUND.")
+            print(f"!! [ERR] SCRIPT '{script_path}' NOT FOUND.")
             sys.exit(1)
             
         with open(script_path, 'r') as f:
             self.code = f.read()
 
     def run(self):
-        print(">> [VAN] BOOTING ENGINE... ALL BRAINS LOADED.")
+        print(">> [VAN] BOOTING... ALL BRAINS ACTIVE.")
         
         # Pre-scan for UVAN
-        if "UVAN .7.0" in self.code:
-            if not os.path.exists(INTERNAL_CONFIG["UVAN_PATH"]):
-                print("!! [ERR] BRAIN UVAN .7.0 NOT INSTALLED AT C:/UVAN")
-                return
+        if "UVAN .7.0" in self.code and not os.path.exists(INTERNAL_CONFIG["UVAN_PATH"]):
+            print("!! [ERR] BRAIN UVAN .7.0 NOT FOUND AT C:/UVAN")
+            return
 
-        # Line-by-Line Execution
         lines = self.code.split('\n')
         for line in lines:
             line = line.strip()
             if not line or line.startswith("#$"): continue
 
-            # ADMIN LOGIC
-            if "admin<=else" in line:
-                print(">> [CONTEXT] PRIVILEGE CHECK: OK.")
+            # 1. FIXED COMMANDS (Exact Match)
+            if line in COMMAND_MAP["fixed"]:
+                Brains.execute(COMMAND_MAP["fixed"][line], line)
+                continue
 
-            # PASSWORD PROTECTED COMMAND
-            if "Edit/%remote" in line:
-                Brains.remote_control(line)
-
-            # STANDARD CMDS
-            if "^%FILE-ACCESS" in line: Brains.file_access()
-            if "force net stop else" in line: Brains.network_kill()
-            if "admin:yes" in line: print(">> [CMD] NET USER /ACTIVE:YES")
+            # 2. SUBSTRING COMMANDS (Keywords)
+            executed = False
+            for trigger, action in COMMAND_MAP["substring"].items():
+                if trigger in line:
+                    Brains.execute(action, line)
+                    executed = True
             
-            # ROOT FLAGS
-            if "ZZX" in line or "LL!@M" in line:
-                print(f">> [ROOT] EXECUTING: {line}")
-
-            # POLYGLOT: JAVASCRIPT
+            # 3. POLYGLOT JS
             if "[JS]" in line:
                 js_match = re.search(r'\[JS\](.*?)\[/JS\]', line)
                 if js_match:
@@ -134,13 +117,13 @@ class FlitteryEngine:
                         print(f"!! [JS_ERR] {e}")
 
 # ============================================================
-# 6. RUNTIME ENTRY
+# 6. RUNTIME ENTRY (Used by pip install)
 # ============================================================
 def main():
     if len(sys.argv) < 2:
         print("Usage: flit <filename.flit>")
     else:
-        # Pass the first argument (the script name) to the engine
+        # sys.argv[1] is the filename passed after 'flit'
         engine = FlitteryEngine(sys.argv[1])
         engine.run()
 
