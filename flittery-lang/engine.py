@@ -1,144 +1,155 @@
+"""
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flittery"
+version = "7.0.1"
+description = "UVAN Engine: High-Performance Administrative DSL (Fortress Mode)"
+authors = [{name = "turtl"}]
+requires-python = ">=3.8"
+dependencies = ["psutil", "js2py"]
+"""
+
 import sys, os, psutil, js2py, gc, re, time, getpass
+from pathlib import Path
 
 # ============================================================
-# 1. UVAN CONFIG & HYBRID COMMAND MAP
+# 1. PATH & INTEGRITY CONFIG
 # ============================================================
+VERSION = "7.0.1"
+BASE_PATH = Path("FLITTERY LANGUAGE").resolve()
+UVAN_PATH = Path("C:/UVAN")
+INTEGRITY_FILE = UVAN_PATH / ".integrity"
+
 UVAN_CONFIG = {
-    "USER": "turtl",
-    "KEY": "turtl",
+    "USER": "turtl", 
     "TERM": "turtleboyagain120",
-    "UVAN_PATH": "C:/UVAN",
-    "TOTAL_LOCK_GB": 8,
-    "ZZX_GB": 1,    # Dedicated ZZX Cache
-    "LL_GB": 1,     # Dedicated LL!@M Wrapper
-    "BRAIN_GB": 3,  # RAM-based buffer
-    "CMD_GB": 3     # Execution engine
+    "TOTAL_LOCK_GB": 8, 
+    "ZZX_GB": 1, 
+    "LL_GB": 1, 
+    "BRAIN_GB": 3, 
+    "CMD_GB": 3
 }
 
 COMMAND_MAP = {
-    "fixed": {
-        "Edit/%remote": "REMOTE_GATE",
-        "Files^%": "FILE_BRAIN",
-        "Net!STOP": "NET_KILL"
-    },
-    "substring": {
-        "ZZX": "ADMIN_ELEVATION",
-        "LL!@M": "ADMIN_WRAPPER",
-        "??PRO": "PRIV_CHECK"
-    }
+    "fixed": {"Edit/%remote": "REMOTE_GATE", "Files^%": "FILE_BRAIN", "Net!STOP": "NET_KILL"},
+    "substring": {"ZZX": "ADMIN_ELEVATION", "LL!@M": "ADMIN_WRAPPER", "??PRO": "PRIV_CHECK"}
 }
 
 # ============================================================
-# 2. SECURITY: IDENTITY & PASSWORD GATE
+# 2. INTEGRITY & MAINTENANCE SYSTEM
+# ============================================================
+def setup_uvan_partitions():
+    try:
+        UVAN_PATH.mkdir(parents=True, exist_ok=True)
+        (UVAN_PATH / "ZZX_Cache").mkdir(exist_ok=True)
+        (UVAN_PATH / "LL_Wrapper").mkdir(exist_ok=True)
+        INTEGRITY_FILE.write_text(VERSION)
+        print(f">> [REPAIR] PARTITIONS REBUILT TO v{VERSION}.")
+    except Exception as e:
+        print(f"!! [HARDWARE_ERR] UNABLE TO ACCESS {UVAN_PATH}: {e}")
+
+def verify_uvan_integrity():
+    if not UVAN_PATH.exists() or not INTEGRITY_FILE.exists():
+        print("!! [NEW/OUTDATED] ALLOCATING UVAN SLICES...")
+        setup_uvan_partitions()
+    elif INTEGRITY_FILE.read_text().strip() != VERSION:
+        print(f"!! [UPGRADE] SYNCING v{VERSION}...")
+        setup_uvan_partitions()
+    else:
+        print(">> [SYNCED] ENGINE AND PATHS ARE UP TO DATE.")
+
+def full_system_flush():
+    print(">> [SCRUB] CLEARING VOLATILE LOGS...")
+    if BASE_PATH.exists():
+        for log in BASE_PATH.glob("*.log"):
+            try: log.unlink(); print(f"   - {log.name} DELETED.")
+            except: pass
+    print(">> [LOOP] INITIATING 12-COUNT MAINTENANCE...")
+    for i in range(1, 13):
+        time.sleep(0.01)
+        print(f"   [{i}/12] STATUS: FORCE_M_LVL_1 \"\"")
+
+# ============================================================
+# 3. CORE ENGINE (UVAN DSL)
 # ============================================================
 def verify_identity():
     if getpass.getuser() != UVAN_CONFIG["USER"]:
-        print(f"!! [UVAN_AUTH_FAIL] UNAUTHORIZED ACCESS.")
+        print(f"!! [UVAN_AUTH_FAIL] UNAUTHORIZED.")
         sys.exit(1)
-    print(f">> [SECURITY] UVAN IDENTITY CONFIRMED: {UVAN_CONFIG['USER']}")
 
-# ============================================================
-# 3. UVAN MEMORY LOCK (8GB WITH 1GB DEDICATED SLICES)
-# ============================================================
 def lock_uvan_memory():
-    print(f">> [SYSTEM] INITIATING 8GB UVAN HARDWARE SACRIFICE...")
-    gc.collect()
-    gc.disable() 
-    
-    # Dedicated 1GB Admin Slices
-    zzx_cache = bytearray(UVAN_CONFIG["ZZX_GB"] * (1024**3))
-    ll_bridge = bytearray(UVAN_CONFIG["LL_GB"] * (1024**3))
-    
-    # Core Engine Partitions
-    uvan_brain = bytearray(UVAN_CONFIG["BRAIN_GB"] * (1024**3))
-    uvan_cmd = bytearray(UVAN_CONFIG["CMD_GB"] * (1024**3))
-    
-    print(f">> [SYSTEM] RAM ALLOCATED: ZZX(1GB) | LL!@M(1GB) | BRAIN(3GB) | CMD(3GB)")
-    return zzx_cache, ll_bridge, uvan_brain, uvan_cmd
+    gc.collect(); gc.disable()
+    print(f">> [SYSTEM] ALLOCATING {UVAN_CONFIG['TOTAL_LOCK_GB']}GB UVAN SLICES...")
+    return [bytearray(UVAN_CONFIG[k] * (1024**3)) for k in ["ZZX_GB", "LL_GB", "BRAIN_GB", "CMD_GB"]]
 
-# ============================================================
-# 4. UVAN COMMAND BRAIN
-# ============================================================
 class UVAN_Brains:
     @staticmethod
     def execute(action, line):
         force_lvl = 2 if line.endswith('""') else 1 if line.endswith('"') else 0
-        tag = f"[UVAN_FORCE_x{force_lvl}] " if force_lvl > 0 else ">> "
-
-        if action == "ADMIN_ELEVATION":
-            print(f"{tag}[ZZX] GLOBAL ADMIN FLAG DETECTED. CACHING PRIVILEGES...")
-        elif action == "ADMIN_WRAPPER":
-            print(f"{tag}[LL!@M] RUNNING COMMAND THROUGH ADMIN WRAPPER...")
-        elif action == "FILE_BRAIN":
-            print(f"{tag}[FILE] ^%FILE-ACCESS: FULL CONTROL GRANTED.")
-        
-        # 12-Count Loop Logic
+        tag = f"[FORCE_x{force_lvl}] " if force_lvl > 0 else ">> "
+        print(f"{tag}[{action}] Executed.")
         if "for 12 in number" in line:
-            print(f"{tag}[MAINTENANCE] RUNNING 12-COUNT CYCLE...")
             for i in range(1, 13):
-                print(f"  -> {i}/12 COMPLETE")
-                time.sleep(0.01)
+                print(f"  -> {i}/12 COMPLETE"); time.sleep(0.01)
 
-# ============================================================
-# 5. CORE ENGINE (TRANSPILER)
-# ============================================================
 class FlitteryEngine:
-    def __init__(self, script_path):
+    def __init__(self):
         verify_identity()
-        # Initialize the 8GB sacrifice with the new 1GB slices
-        self.zzx, self.ll, self.brain, self.cmd = lock_uvan_memory()
-        self.script_path = os.path.abspath(script_path)
+        verify_uvan_integrity()
+        full_system_flush()
+        self.mem = lock_uvan_memory()
 
-    def run(self):
-        with open(self.script_path, 'r') as f:
-            code = f.read()
+    def process_line(self, line):
+        line = line.strip()
+        if not line or line.startswith("#$"): return
+        if UVAN_CONFIG["TERM"] in line:
+            print("!! [TERMINATOR] SHUTDOWN."); os.system("shutdown /s /t 1"); return
 
-        # Creator Terminator (Shutdown Logic)
-        if UVAN_CONFIG["TERM"] in code:
-            print(f">> [TERMINATOR] SOURCE: {self.script_path} | SYSTEM SHUTDOWN.")
-            os.system("shutdown /s /t 1")
-            return
+        # Measures
+        if "outputx!000" in line and "3 of letters" in line:
+            print(">> [BRAIN] MEASURE: LENGTH 3 CACHED."); return
 
-        # PRE-SCAN: Find ZZX/LL!@M and map them before running
-        print(">> [SCAN] PRE-PROCESSING SCRIPT FOR ADMIN TRIGGERS...")
-        if "ZZX" in code: print("   [CACHE] ZZX CACHE ENGAGED (1GB)")
-        if "LL!@M" in code: print("   [BRIDGE] LL!@M WRAPPER ENGAGED (1GB)")
+        matched = False
+        if line in COMMAND_MAP["fixed"]:
+            UVAN_Brains.execute(COMMAND_MAP["fixed"][line], line)
+            matched = True
+        else:
+            for trigger, action in COMMAND_MAP["substring"].items():
+                if trigger in line:
+                    UVAN_Brains.execute(action, line)
+                    matched = True; break
+        
+        if not matched and "[JS]" in line:
+            try:
+                js_code = re.search(r'\[JS\](.*?)\[/JS\]', line).group(1)
+                print(f">> [UVAN_JS] {js2py.eval_js(js_code)}")
+            except Exception as e: print(f"!! [JS_ERR] {e}")
 
-        lines = code.splitlines()
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith("#$"): continue
+    def shell(self):
+        print(f"\nUVAN v{VERSION} SHELL - READY")
+        while True:
+            try:
+                cmd = input(f"{UVAN_CONFIG['USER']}@uvan> ")
+                if cmd.lower() in ['exit', 'quit']: break
+                self.process_line(cmd)
+            except KeyboardInterrupt: break
 
-            # Length-Check Brain (outputx!000)
-            if "outputx!000" in line and "3 of letters" in line:
-                print(">> [BRAIN] LENGTH MATCH: 3. STORED IN TEMP MEMORY.")
-                continue
-
-            # Hybrid Execution (Fixed vs Substring)
-            matched = False
-            if line in COMMAND_MAP["fixed"]:
-                UVAN_Brains.execute(COMMAND_MAP["fixed"][line], line)
-                matched = True
-            else:
-                for trigger, action in COMMAND_MAP["substring"].items():
-                    if trigger in line:
-                        UVAN_Brains.execute(action, line)
-                        matched = True
-                        break
-            
-            # Polyglot JS Bridge
-            if not matched and "[JS]" in line:
-                js_content = re.search(r'\[JS\](.*?)\[/JS\]', line).group(1)
-                try:
-                    print(f">> [UVAN_JS] {js2py.eval_js(js_content)}")
-                except Exception as e:
-                    print(f"!! [JS_ERR] {e}")
-
+# ============================================================
+# 4. ENTRY POINT
+# ============================================================
 def main():
-    if len(sys.argv) < 2:
-        print("FLITTERY (UVAN ENGINE) - PROVIDE .FLIT FILE")
+    engine = FlitteryEngine()
+    if len(sys.argv) > 1:
+        # Run one-liner from CMD: python flit.py "ZZX; Files^%"
+        full_code = " ".join(sys.argv[1:])
+        for part in full_code.split(';'):
+            engine.process_line(part)
     else:
-        FlitteryEngine(sys.argv[1]).run()
+        # Start interactive shell
+        engine.shell()
 
 if __name__ == "__main__":
     main()
