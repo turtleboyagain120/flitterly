@@ -1,11 +1,22 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "flittery"
-version = "1.0.0"
-dependencies = ["psutil", "js2py"]
+version = "7.0.1"
+description = "UVAN Engine: High-Performance Administrative DSL (Fortress Mode)"
+authors = [{name = "turtl"}]
+requires-python = ">=3.8"
+dependencies = [
+    "psutil",
+    "js2py",
+]
 
 [project.scripts]
-flit = "engine:main"  # This links the 'flit' command to your single file
+flit = "engine:main"
+uvan-clean = "maintenance:main"
+
+[tool.setuptools]
+# Ensures 'flit' works globally from the flat module structure
+py-modules = ["engine", "maintenance"]
