@@ -1,4 +1,0 @@
-Flittery/
-├── pyproject.toml      # The "Installer"
-├── engine.py           # The "Everything" file (Brains + Engine + Memory)
-└── script.flit         # Your code
