@@ -1,8 +1,6 @@
 flittery-lang/
 ├── Layout/
 │   ├── engine.py           # Core UVAN Transpiler
-│   ├── maintenance.py      # Scrubbing & 12-count Loop
-│   ├── pyproject.toml      # Build Configuration
 │   └── .gitignore          # Exclusion Rules
 ├── LICENSE                 # Legal
 └── README.md               # Instructions
